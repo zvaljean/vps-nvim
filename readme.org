@@ -1,0 +1,144 @@
+#+title: nvim-lab 变更记录与项目规则
+#+startup: overview
+
+* 项目目标
+
+从零构建一套属于自己的 Neovim 配置。配置源文件使用 Org Mode 管理，通过 Org Babel tangle 生成 Lua 文件。
+
+* 启动方式
+
+过渡阶段使用独立的应用名，避免读取或写入本机默认 Neovim 配置：
+
+#+begin_src sh
+  NVIM_APPNAME=nvim-lab nvim
+#+end_src
+
+项目配置目录为 =/home/valjean/.config/nvim-lab=。
+
+* 配置检查
+
+执行 tangle 后，可以在 Neovim 中检查 =signcolumn=：
+
+#+begin_src vim
+:set signcolumn?
+:lua print(vim.opt.signcolumn:get())
+#+end_src
+
+配置生成后进行无界面启动检查：
+
+#+begin_src sh
+  NVIM_APPNAME=nvim-lab nvim --headless "+qa"
+#+end_src
+
+* 项目规则
+
+1. 优先修改 =nvim-init.org=，不要直接修改由 tangle 生成的 Lua 文件。
+2. 每次配置变更都在本文件的“变更记录”中追加日期、目的和验证结果。
+3. 新增插件必须说明用途、加载时机和可能的外部依赖。
+4. 配置应保持模块化；复杂配置拆分为独立 Org source block，并明确 tangle 目标文件。
+5. 修改后至少进行一次无界面启动检查：
+
+   #+begin_src sh
+     NVIM_APPNAME=nvim-lab nvim --headless "+qa"
+   #+end_src
+
+6. 不覆盖默认 =nvim= 配置，不在没有记录的情况下删除已有配置。
+
+* 常用插件清单
+
+本清单用于规划，不代表一次性全部安装。新增插件前先确认它解决了实际问题，并在配置中记录加载时机和依赖。
+
+** 第一批：基础 IDE 能力
+
+| 分类 | 插件 | 用途 | 建议 |
+|---+---+---+---|
+| 插件管理 | =vim.pack= 或 =lazy.nvim= | 安装、更新和加载插件 | 二选一，不混用 |
+| 搜索 | =nvim-telescope/telescope.nvim= | 文件、文本、缓冲区、帮助和 LSP 搜索 | 建议启用 |
+| 搜索加速 | =nvim-telescope/telescope-fzf-native.nvim= | Telescope 原生模糊匹配 | 有编译环境时启用 |
+| 文件树 | =nvim-tree/nvim-tree.lua= | 浏览、创建、删除和重命名文件 | 已列入规划 |
+| Git | =lewis6991/gitsigns.nvim= | 行级 diff、hunk 跳转、暂存和 blame | 建议启用 |
+| 快捷键提示 | =folke/which-key.nvim= | 显示 leader 键和快捷键分组 | 建议启用 |
+| 语法解析 | =nvim-treesitter/nvim-treesitter= | 高亮、折叠、语法结构和 parser 管理 | 必须匹配 Neovim 版本 |
+
+** 第二批：代码智能
+
+| 分类 | 插件 | 用途 | 外部依赖 |
+|---+---+---+---|
+| LSP | =neovim/nvim-lspconfig= | 配置语言服务器 | 需要对应的语言服务器 |
+| LSP 安装 | =mason-org/mason.nvim= | 管理语言服务器、格式化器和诊断工具 | 网络、部分工具需要编译器 |
+| LSP 映射 | =mason-org/mason-lspconfig.nvim= | 连接 Mason 和 lspconfig | 依赖 Mason |
+| 工具安装 | =WhoIsSethDaniel/mason-tool-installer.nvim= | 自动安装指定工具 | 依赖 Mason |
+| 补全 | =saghen/blink.cmp= | LSP、路径和代码片段补全 | 可选 Lua/Rust 模糊匹配 |
+| 代码片段 | =L3MON4D3/LuaSnip= | 展开和管理代码片段 | 可选 =friendly-snippets= |
+| 格式化 | =stevearc/conform.nvim= | 统一调用外部 formatter | 需要安装 formatter |
+| 状态提示 | =j-hui/fidget.nvim= | 显示 LSP 进度 | 可选 |
+
+** 第三批：编辑体验
+
+| 插件 | 用途 | 建议 |
+|---+---+---|
+| =nvim-mini/mini.nvim= | surrounding、textobject、状态栏、图标等小模块 | 按模块启用，不要整套无差别加载 |
+| =windwp/nvim-autopairs= | 自动补全括号和引号 | 与补全插件一起测试 |
+| =folke/todo-comments.nvim= | 高亮 TODO、FIXME、NOTE 等标记 | 轻量，建议启用 |
+| =okuuva/auto-save.nvim= | 自动保存 | 需要避开特殊 buffer |
+| =folke/trouble.nvim= | 统一查看诊断、引用和 quickfix | LSP 稳定后再启用 |
+
+** 第四批：文档与项目工具
+
+| 插件/工具 | 用途 | 说明 |
+|---+---+---|
+| =MeanderingProgrammer/render-markdown.nvim= | 在 Markdown 中渲染标题、列表、代码块和表格 | 依赖 Treesitter Markdown parser |
+| =iamcco/markdown-preview.nvim= | 在浏览器中预览 Markdown | 需要 Node.js，和 render-markdown 二选一或并用 |
+| =akinsho/toggleterm.nvim= | 管理浮动和分屏终端 | 项目运行命令较多时使用 |
+| =stevearc/oil.nvim= | 以可编辑 buffer 方式管理文件系统 | 可作为 nvim-tree 的替代方案 |
+| =mfussenegger/nvim-dap= | Debug Adapter Protocol 调试 | 需要额外配置 debugger 和 adapter |
+| =nvim-neotest/neotest= | 测试发现、运行和结果展示 | 等 LSP/项目命令稳定后再启用 |
+
+** 远程文件
+
+远程文件不一定需要插件：Neovim 的 netrw 支持 =scp://= 路径，但当前体验更适合单文件编辑；远程项目建议使用 =sshfs= 挂载后交给 nvim-tree 或 Telescope 浏览。后续如需要远程开发，再单独评估远程插件。
+
+** 推荐落地顺序
+
+1. 先确定插件管理器：=vim.pack= 或 =lazy.nvim=。
+2. 安装 Telescope、Treesitter、gitsigns、which-key。
+3. 配置 LSP、Mason、blink.cmp 和 conform。
+4. 加入 nvim-tree、Markdown 和终端工具。
+5. 最后评估 DAP、测试、Trouble 和远程开发工具。
+
+** 选择原则
+
+- 一个问题优先选择一个主要插件，避免功能重叠。
+- 优先使用 Neovim 原生能力和小型模块，不为每个细节安装插件。
+- 每个插件都要有明确的退出方案：停用后核心编辑能力仍应可用。
+- 记录插件的加载事件、外部依赖、快捷键和验证方法。
+
+** 计划
+
+- [ ] 选择并配置插件管理器
+- [ ] 增加文件搜索与文件树
+- [ ] 增加 LSP、补全和格式化
+- [ ] 增加 Git、调试和测试工具
+- [ ] 增加 Markdown/Org 编辑支持
+- [ ] 为每个阶段补充验证命令
+
+* 变更记录
+
+** 2026-11-02
+
+- 初始化 nvim-lab 配置项目。
+- 确立 =nvim-init.org= 作为配置源文件。
+- 添加启动方式、tangle 约定和基础校验规则。
+- 添加初始 Lua 配置模板和后续建设清单。
+
+** 2026-11-02
+
+- 参考 Kickstart.nvim 整理常用插件清单。
+- 按基础 IDE、代码智能、编辑体验、文档与项目工具分批规划。
+- 记录远程文件方案和插件选择原则。
+
+** 2026-11-02
+
+- 将 nvim-init.org 收敛为配置源文件。
+- 将 signcolumn 检查命令和启动检查移动到根目录 readme.org。
+

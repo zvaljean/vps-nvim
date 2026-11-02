@@ -1,0 +1,56 @@
+#+title: Nvim Config 
+#+PROPERTY: header-args:lua :tangle yes :mkdirp yes :padline yes
+* entrypoint
+#+begin_src lua :tangle (concat root-dir "init.lua") 
+  -- Enable faster startup by caching compiled Lua modules
+  vim.loader.enable()
+  require("options")
+  require("keymap")
+#+end_src
+* options
+** check
+#+begin_src
+:set signcolumn?
+:lua print(vim.opt.signcolumn:get())
+#+end_src
+** config
+#+begin_src lua :tangle (concat lua-dir "options/init.lua") 
+  vim.opt.number = true
+  vim.opt.relativenumber = true
+  vim.opt.mouse = "a"
+  vim.opt.termguicolors = true
+  vim.opt.expandtab = true
+  vim.opt.shiftwidth = 2
+  vim.opt.tabstop = 2
+  vim.opt.signcolumn = "yes"
+  vim.opt.updatetime = 250
+#+end_src
+* key mapping
+** leader key
+#+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
+  vim.g.mapleader = " "
+  vim.g.maplocalleader = " "
+#+end_src
+** shortcut
+#+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
+  vim.keymap.set("n", "<leader>w", "<cmd>write<cr>", { desc = "Save file" })
+  vim.keymap.set("n", "<leader>q", "<cmd>quit<cr>", { desc = "Quit window" })
+  vim.keymap.set("n", "<leader>r", function()
+  				  local config = vim.env.MYVIMRC
+  				  if not config or config == "" then
+  					 config = vim.fn.stdpath("config") .. "/init.lua"
+  				  end
+
+  				  vim.cmd("source " .. vim.fn.fnameescape(config))
+  				  vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
+  end, { desc = "Reload Neovim configuration" })
+#+end_src
+* ui
+* function
+* local variable
+# Local Variables:
+# root-dir: "../"
+# lua-dir: "../lua/"
+# org-confirm-babel-evaluate: nil
+# eval: (add-hook 'after-save-hook #'org-babel-tangle nil t)
+# End:
