@@ -6,24 +6,28 @@
   vim.loader.enable()
   require("options")
   require("keymap")
+  require("pkgs")
 #+end_src
 * options
 ** check
+在nvim中检查某个变量值
 #+begin_src
 :set signcolumn?
 :lua print(vim.opt.signcolumn:get())
 #+end_src
 ** config
 #+begin_src lua :tangle (concat lua-dir "options/init.lua") 
-  vim.opt.number = true
-  vim.opt.relativenumber = true
-  vim.opt.mouse = "a"
-  vim.opt.termguicolors = true
-  vim.opt.expandtab = true
-  vim.opt.shiftwidth = 2
-  vim.opt.tabstop = 2
-  vim.opt.signcolumn = "yes"
-  vim.opt.updatetime = 250
+    vim.opt.number = true
+    vim.opt.relativenumber = true
+    vim.opt.mouse = "a"
+    vim.opt.termguicolors = true
+    vim.opt.expandtab = true
+    vim.opt.shiftwidth = 2
+    vim.opt.tabstop = 2
+    vim.opt.signcolumn = "yes"
+    vim.opt.updatetime = 250
+  -- timeoutlen 控制 Neovim 等待后续按键的时间
+    vim.opt.timeoutlen = 250
 #+end_src
 * key mapping
 ** leader key
@@ -44,6 +48,251 @@
   				  vim.cmd("source " .. vim.fn.fnameescape(config))
   				  vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
   end, { desc = "Reload Neovim configuration" })
+#+end_src
+* libs
+** init
+#+begin_src lua :tangle (concat lua-dir "libs/init.lua") 
+  local M = {}
+  M.gh = require("libs.gh")
+  return M
+#+end_src
+** gh helper
+#+begin_src lua :tangle (concat lua-dir "libs/gh.lua") 
+  return function(x)
+     return "https://github.com/" .. x
+  end
+#+end_src
+* packages
+** init
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+
+  require("pkgs.telescope")
+  require("pkgs.nvim-tree")
+  require("pkgs.which-key")
+  require("pkgs.gitsigns")
+  require("pkgs.nvim-treesitter")
+
+#+end_src
+** telescope
+*** docs
+- https://github.com/nvim-telescope/telescope.nvim#file-pickers
+  有不同的功能
+- https://github.com/nvim-telescope/telescope.nvim
+*** other
+**** telescope-fzf-native
+- FZF sorter for telescope written in c
+- https://github.com/nvim-telescope/telescope-fzf-native.nvim 
+
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/telescope.lua") 
+  local gh = require("libs").gh
+  local telescope_plugins = {
+     {
+  	  src = gh("nvim-lua/plenary.nvim"),
+     },
+     {
+  	  src = gh("nvim-telescope/telescope.nvim"),
+  	  -- Git branch, tag, or commit hash.
+  	  version = "v0.2.2",
+     },
+     {
+  	  src = gh("nvim-telescope/telescope-ui-select.nvim"),
+     },
+  }
+
+  -- if vim.fn.executable("make") == 1 then
+  --   table.insert(telescope_plugins, {
+  --     src = gh("nvim-telescope/telescope-fzf-native.nvim"),
+  --   })
+  -- end
+
+  vim.pack.add(telescope_plugins)
+
+  require("telescope").setup({
+  	  extensions = {
+  		 ["ui-select"] = {
+  			require("telescope.themes").get_dropdown(),
+  		 },
+  	  },
+  						  })
+
+  pcall(require("telescope").load_extension, "ui-select")
+  -- pcall(require("telescope").load_extension, "fzf")
+
+  local builtin = require("telescope.builtin")
+
+  vim.keymap.set("n", "<leader>ff", builtin.find_files, {
+  				  desc = "Telescope find files",
+  })
+  vim.keymap.set("n", "<leader>fg", builtin.live_grep, {
+  				  desc = "Telescope live grep",
+  })
+  vim.keymap.set("n", "<leader>fb", builtin.buffers, {
+  				  desc = "Telescope buffers",
+  })
+  vim.keymap.set("n", "<leader>fh", builtin.help_tags, {
+  				  desc = "Telescope help tags",
+  })
+#+end_src
+** gitsigns
+*** docs
+- https://github.com/lewis6991/gitsigns.nvim
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/gitsigns.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("lewis6991/gitsigns.nvim"),
+    },
+  })
+
+  require("gitsigns").setup({})
+#+end_src
+** nvim-treesitter
+*** docs
+- https://github.com/nvim-treesitter/nvim-treesitter
+- tree-sitter
+  也需要提前安装，本项目配置再devenv环境中。.
+  之后才可以编译Treesitter
+- Treesitter parser 需要单独安装
+  #+begin_src shell
+    # - :TSInstall lua markdown markdown_inline nix vim vimdoc query
+    NVIM_APPNAME=nvim-lab nvim --headless \
+        				  '+lua require("nvim-treesitter").install({"lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
+        				  '+qa'
+    #+end_src
+*** config
+
+#+begin_src lua :tangle (concat lua-dir "pkgs/nvim-treesitter.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("nvim-treesitter/nvim-treesitter"),
+    },
+  })
+
+  require("nvim-treesitter").setup({
+    install_dir = vim.fn.stdpath("data") .. "/site",
+  })
+
+  vim.api.nvim_create_autocmd("FileType", {
+    pattern = {
+      "lua",
+      "markdown",
+      "markdown_inline",
+      "nix",
+      "query",
+      "vim",
+      "vimdoc",
+    },
+    callback = function(args)
+      pcall(vim.treesitter.start, args.buf)
+    end,
+  })
+#+end_src
+** nvim-tree
+*** docs
+- https://github.com/nvim-tree/nvim-tree.lua
+*** test
+#+begin_src 
+  :lua local t=vim.uv.hrtime(); require("nvim-tree.api").tree.toggle(); print((vim.uv.hrtime()-t)/1e6 .. " ms")
+#+end_src
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/nvim-tree.lua") 
+  vim.g.loaded_netrw = 1
+  vim.g.loaded_netrwPlugin = 1
+
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("nvim-tree/nvim-tree.lua"),
+    },
+    {
+      src = gh("nvim-tree/nvim-web-devicons"),
+    },
+  })
+
+  require("nvim-tree").setup({
+    view = {
+      width = 30,
+    },
+    renderer = {
+      group_empty = true,
+    },
+  })
+
+  local api = require("nvim-tree.api")
+
+  vim.keymap.set("n", "<leader>e", api.tree.toggle, {
+    desc = "NvimTree toggle",
+  })
+  vim.keymap.set("n", "<leader>ef", api.tree.find_file, {
+    desc = "NvimTree find file",
+  })
+
+#+end_src
+** which-key
+*** docs
+- https://github.com/folke/which-key.nvim
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("folke/which-key.nvim"),
+    },
+  })
+
+  local wk = require("which-key")
+
+  wk.setup({})
+  wk.add({
+    {
+      "<leader>w",
+      desc = "Save file",
+    },
+    {
+      "<leader>q",
+      desc = "Quit window",
+    },
+    {
+      "<leader>r",
+      desc = "Reload Neovim configuration",
+    },
+    {
+      "<leader>e",
+      desc = "NvimTree toggle",
+    },
+    {
+      "<leader>ef",
+      desc = "NvimTree find file",
+    },
+    {
+      "<leader>f",
+      group = "Find",
+    },
+    {
+      "<leader>ff",
+      desc = "Telescope find files",
+    },
+    {
+      "<leader>fg",
+      desc = "Telescope live grep",
+    },
+    {
+      "<leader>fb",
+      desc = "Telescope buffers",
+    },
+    {
+      "<leader>fh",
+      desc = "Telescope help tags",
+    },
+  })
+
 #+end_src
 * ui
 * function

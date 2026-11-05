@@ -142,3 +142,32 @@
 - 将 nvim-init.org 收敛为配置源文件。
 - 将 signcolumn 检查命令和启动检查移动到根目录 readme.org。
 
+** 2026-11-04
+
+- 在 devenv 中启用 Lua 开发支持，包含 Lua Language Server。
+- 将 StyLua 加入现有 Treefmt 配置，用于格式化 Lua 文件。
+- 未执行 devenv 更新、tangle 或格式化命令，待确认后由用户执行。
+
+** 2026-11-04
+
+- 明确启用 Alejandra 格式化 Nix 文件。
+- 将 Nix 格式化范围限定为 =devenv.nix= 和 =devops/**/*.nix=。
+
+** 2026-11-05
+
+- 参考 Kickstart.nvim 和 Telescope 官方文档完善 Telescope 配置。
+- 添加 =nvim-lua/plenary.nvim= 和 =telescope-ui-select.nvim= 依赖。
+- 添加 Telescope 基础配置及文件、全文搜索、缓冲区和帮助标签快捷键。
+- 保留 =pkgs/init.lua= 中的全局 =gh= helper，并在 Telescope 模块中复用它。
+- 按系统是否存在 =make= 条件加入 =nvim-telescope/telescope-fzf-native.nvim=，并加载 =fzf= 扩展。
+- 补充 nvim-tree 和 which-key 的插件安装、初始化和快捷键配置。
+- 修正 which-key 的 tangle 文件名，使其与 =require("pkgs.which-key")= 一致。
+- 按现有插件结构添加 gitsigns 和 nvim-treesitter 配置。
+- 使用 nvim-treesitter 当前新版 API，并为 Lua、Markdown、Nix、Vim 等文件类型启用 Treesitter 高亮。
+- 使用 Which-key 统一登记通用、文件树和 Telescope 快捷键的分组与说明，避免重复绑定实际功能。
+
+** 2026-11-05
+
+- 为 nvim-treesitter parser 编译补充 devenv 依赖：Tree-sitter CLI、GCC、curl 和 GNU tar。
+- 未执行 devenv 更新或 parser 安装，待用户重新进入 devenv 后验证。
+

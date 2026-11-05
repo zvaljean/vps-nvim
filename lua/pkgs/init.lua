@@ -1,0 +1,5 @@
+require("pkgs.telescope")
+require("pkgs.nvim-tree")
+require("pkgs.which-key")
+require("pkgs.gitsigns")
+require("pkgs.nvim-treesitter")

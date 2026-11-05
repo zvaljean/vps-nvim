@@ -6,7 +6,7 @@
 
 ## 配置来源
 
-- 主要配置源文件是 `nvim-init.org`。
+- 主要配置源文件是 `context-org/nvim-init.org`。
 - 使用 Org Babel tangle 将 Org source block 生成 Lua 配置文件。
 - 优先修改 Org 文件，不要直接编辑由 tangle 生成的 Lua 文件。
 - Codex 修改配置时只修改 Org 源文件，不执行 tangle，也不主动生成或更新 Lua 文件；由用户自行执行 tangle 并确认结果。
@@ -32,6 +32,15 @@ NVIM_APPNAME=nvim-lab nvim
 5. 不删除、改名或重组用户已经添加的 Org subtree、代码块或说明内容；如需调整位置或内容，必须先得到用户明确要求。
 6. 生成文件由用户在确认 Org 源文件后自行 tangle；Codex 不直接修改生成的 Lua 文件，也不替用户执行 tangle。
 7. 用户负责执行 tangle，并负责对生成的 Lua 配置进行最终启动验证。
+
+## 开发环境
+
+- 项目使用 `devenv.nix` 管理开发环境。
+- Lua 支持通过 `devops/basic/default.nix` 中的 `languages.lua.enable` 提供，并包含 Lua Language Server。
+- Lua 代码由项目现有的 Treefmt 集成调用 StyLua 格式化；配置位于同一文件的 `treefmt.config.programs.stylua`。
+- Nix 代码由 Alejandra 格式化，范围明确限定为 `devenv.nix` 和 `devops/**/*.nix`。
+- nvim-treesitter 的 parser 编译依赖由 devenv 提供，包括 `tree-sitter` CLI、C 编译器、curl 和 tar。
+- Codex 不执行 `devenv` 更新、tangle 或格式化命令；由用户在确认配置后执行。
 
 ## 校验
 
