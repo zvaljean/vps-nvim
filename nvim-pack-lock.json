@@ -1,5 +1,10 @@
 {
   "plugins": {
+    "auto-save.nvim": {
+      "rev": "5fbcaac0a2698c87a9a1bd2083cb6949505cca12",
+      "src": "https://github.com/okuuva/auto-save.nvim",
+      "version": "'v1.0.0'"
+    },
     "bufferline.nvim": {
       "rev": "655133c3b4c3e5e05ec549b9f8cc2894ac6f51b3",
       "src": "https://github.com/akinsho/bufferline.nvim"

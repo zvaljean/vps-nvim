@@ -1,15 +1,11 @@
 local gh = require("libs").gh
 local telescope_plugins = {
-   {
-	  src = gh("nvim-lua/plenary.nvim"),
-   },
+   {src = gh("nvim-lua/plenary.nvim"),},
+   {src = gh("nvim-telescope/telescope-ui-select.nvim"),},
    {
 	  src = gh("nvim-telescope/telescope.nvim"),
 	  -- Git branch, tag, or commit hash.
 	  version = "v0.2.2",
-   },
-   {
-	  src = gh("nvim-telescope/telescope-ui-select.nvim"),
    },
 }
 

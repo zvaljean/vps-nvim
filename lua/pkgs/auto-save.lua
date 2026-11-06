@@ -47,7 +47,3 @@ require("auto-save").setup({
   write_all_buffers = false,
   debounce_delay = 1000,
 })
-
-vim.keymap.set("n", "<leader>ua", "<cmd>ASToggle<CR>", {
-  desc = "Toggle auto-save",
-})

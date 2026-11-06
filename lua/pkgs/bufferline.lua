@@ -43,5 +43,3 @@ require("bufferline").setup({
 		 end,
 	  },
 						   })
-
-vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {desc = "Toggle bufferline",})

@@ -1,9 +1,14 @@
 require("pkgs.telescope")
-require("pkgs.nvim-tree")
-require("pkgs.which-key")
+
 require("pkgs.gitsigns")
+
+require("pkgs.auto-save")
+
 require("pkgs.nvim-treesitter")
-require("pkgs.catppuccin")
+
+require("pkgs.nvim-tree")
+
+require("pkgs.which-key")
 
 require("pkgs.lualine")
 require("pkgs.dressing")

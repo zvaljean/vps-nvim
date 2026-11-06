@@ -30,6 +30,14 @@
   NVIM_APPNAME=nvim-lab nvim --headless "+qa"
 #+end_src
 
+项目根目录的 =Makefile= 提供对应的快捷命令：
+
+#+begin_src sh
+  make treesitter-install  # 安装或更新常用 Treesitter parser
+  make nvim-check          # 无界面启动检查
+  make check               # nvim-check 的别名
+#+end_src
+
 * 项目规则
 
 1. 优先修改 =nvim-init.org=，不要直接修改由 tangle 生成的 Lua 文件。
@@ -270,4 +278,7 @@ vim.opt.foldcolumn = "1"
 - Which-key mapping 在 Org Babel 源码中采用单行紧凑格式；Babel tangle 会原样复制代码，后续 StyLua 是否展开取决于格式化规则。
 - Which-key 的 =wk.add= 中所有 mapping 和 group 均统一为每行一个配置。
 - 将 Telescope 和 NvimTree 的全局入口迁移到 Which-key 的 rhs，移除插件 subtree 中的重复快捷键定义。
+- 修复 auto-save 未加入插件初始化的问题。
+- 将保存、退出、重载配置、自动保存和 Bufferline 切换统一迁移到 Which-key 的 rhs。
+- 用 =vim.o.showtabline= 实现 Bufferline 显示切换，移除不存在的 =BufferLineToggleShow= 命令。
 

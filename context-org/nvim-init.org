@@ -5,7 +5,6 @@
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
   require("options")
-  require("keymap")
   require("pkgs")
 #+end_src
 * options
@@ -17,17 +16,19 @@
 #+end_src
 ** config
 #+begin_src lua :tangle (concat lua-dir "options/init.lua") 
-    vim.opt.number = true
-    vim.opt.relativenumber = true
-    vim.opt.mouse = "a"
-    vim.opt.termguicolors = true
-    vim.opt.expandtab = true
-    vim.opt.shiftwidth = 2
-    vim.opt.tabstop = 2
-    vim.opt.signcolumn = "yes"
-    vim.opt.updatetime = 250
+  vim.g.mapleader = " "
+  vim.g.maplocalleader = " "
+  vim.opt.number = true
+  vim.opt.relativenumber = true
+  vim.opt.mouse = "a"
+  vim.opt.termguicolors = true
+  vim.opt.expandtab = true
+  vim.opt.shiftwidth = 2
+  vim.opt.tabstop = 2
+  vim.opt.signcolumn = "yes"
+  vim.opt.updatetime = 250
   -- timeoutlen 控制 Neovim 等待后续按键的时间
-    vim.opt.timeoutlen = 250
+  vim.opt.timeoutlen = 250
 #+end_src
 ** folding
 - https://github.com/neovim/neovim/blob/master/runtime/doc/fold.txt
@@ -48,28 +49,6 @@
   vim.opt.foldenable = true
   vim.opt.foldcolumn = "1"
   #+end_src
-* key mapping
-** leader key
-#+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
-  vim.g.mapleader = " "
-  vim.g.maplocalleader = " "
-#+end_src
-** shortcut
-*** basic
-#+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
-  vim.keymap.set("n", "<leader>w", "<cmd>write<cr>", { desc = "Save file" })
-  vim.keymap.set("n", "<leader>q", "<cmd>quit<cr>", { desc = "Quit window" })
-
-  vim.keymap.set("n", "<leader>r", function()
-  				  local config = vim.env.MYVIMRC
-  				  if not config or config == "" then
-  					 config = vim.fn.stdpath("config") .. "/init.lua"
-  				  end
-  				  vim.cmd("source " .. vim.fn.fnameescape(config))
-  				  vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
-  end, { desc = "Reload Neovim configuration" })
-#+end_src
-
 * libs
 ** init
 #+begin_src lua :tangle (concat lua-dir "libs/init.lua") 
@@ -84,14 +63,8 @@
   end
 #+end_src
 * packages
-** init
+** COMMENT init
 #+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
-  require("pkgs.telescope")
-  require("pkgs.nvim-tree")
-  require("pkgs.which-key")
-  require("pkgs.gitsigns")
-  require("pkgs.nvim-treesitter")
-  require("pkgs.catppuccin")
 #+end_src
 ** telescope
 *** docs
@@ -103,20 +76,20 @@
 - FZF sorter for telescope written in c
 - https://github.com/nvim-telescope/telescope-fzf-native.nvim 
 
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.telescope")
+#+end_src
 *** config
 #+begin_src lua :tangle (concat lua-dir "pkgs/telescope.lua") 
   local gh = require("libs").gh
   local telescope_plugins = {
-     {
-  	  src = gh("nvim-lua/plenary.nvim"),
-     },
+     {src = gh("nvim-lua/plenary.nvim"),},
+     {src = gh("nvim-telescope/telescope-ui-select.nvim"),},
      {
   	  src = gh("nvim-telescope/telescope.nvim"),
   	  -- Git branch, tag, or commit hash.
   	  version = "v0.2.2",
-     },
-     {
-  	  src = gh("nvim-telescope/telescope-ui-select.nvim"),
      },
   }
 
@@ -146,6 +119,10 @@
 ** gitsigns
 *** docs
 - https://github.com/lewis6991/gitsigns.nvim
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.gitsigns")
+#+end_src
 *** config
 #+begin_src lua :tangle (concat lua-dir "pkgs/gitsigns.lua") 
   local gh = require("libs").gh
@@ -161,6 +138,10 @@
 - https://github.com/okuuva/auto-save.nvim
 - 自动保存普通文件，跳过特殊 buffer。
 - =<leader>ua= ：临时切换自动保存。
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.auto-save")
+#+end_src
 *** config
 #+begin_src lua :tangle (concat lua-dir "pkgs/auto-save.lua") 
   local gh = require("libs").gh
@@ -213,9 +194,6 @@
     debounce_delay = 1000,
   })
 
-  vim.keymap.set("n", "<leader>ua", "<cmd>ASToggle<CR>", {
-    desc = "Toggle auto-save",
-  })
 #+end_src
 ** nvim-treesitter
 *** docs
@@ -249,6 +227,10 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
          '+lua require("nvim-treesitter").install({"json", "jsonc", "lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
          '+qa'
     #+end_src
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.nvim-treesitter")
+#+end_src
 *** config
 
 #+begin_src lua :tangle (concat lua-dir "pkgs/nvim-treesitter.lua") 
@@ -289,6 +271,11 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
 #+begin_src 
   :lua local t=vim.uv.hrtime(); require("nvim-tree.api").tree.toggle(); print((vim.uv.hrtime()-t)/1e6 .. " ms")
 #+end_src
+
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.nvim-tree")
+#+end_src
 *** config
 #+begin_src lua :tangle (concat lua-dir "pkgs/nvim-tree.lua") 
   vim.g.loaded_netrw = 1
@@ -314,37 +301,76 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
 ** which-key
 *** docs
 - https://github.com/folke/which-key.nvim
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.which-key")
+#+end_src
 *** config
+**** pkgs
 #+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
   local gh = require("libs").gh
-
   vim.pack.add({
   	  { src = gh("folke/which-key.nvim") },
   })
-
   local wk = require("which-key")
-
   wk.setup({})
-  -- stylua: ignore start
-  wk.add({
-  	  { "<leader>w", desc = "Save file" },
-  	  { "<leader>q", desc = "Quit window" },
-  	  { "<leader>r", desc = "Reload Neovim configuration" },
-  	  { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree toggle" },
-  	  { "<leader>ef", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTree find file" },
+#+end_src
 
+**** raw
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  -- 基础快捷键统一在下方 basic subtree 的 wk.add rhs 中定义。
+
+#+end_src
+
+**** basic
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  -- stylua: ignore start
+  local reload =  function()
+     local config = vim.env.MYVIMRC
+     if not config or config == "" then
+        config = vim.fn.stdpath("config") .. "/init.lua"
+     end
+     vim.cmd("source " .. vim.fn.fnameescape(config))
+     vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
+  end
+
+  wk.add({
+  	  { "<leader>w", "<cmd>write<cr>", desc = "Save file" },
+  	  { "<leader>W", "<cmd>wall<cr>", desc = "Save all file" },
+  	  { "<leader>q", "<cmd>quit<cr>", desc = "Quit window" },
+  	  { "<leader>Q", "<cmd>quitall<cr>", desc = "Quit all window" },
+  	  { "<leader>r",  reload, desc = "Reload Neovim configuration" },
+  	  { "<leader>ua", "<cmd>ASToggle<cr>", desc = "Toggle auto-save" },
+  	  { "<leader>uB", function()
+  		   vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
+  	  end, desc = "Toggle bufferline" },
+  })
+#+end_src
+
+**** telescope
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+
+  wk.add({
   	  { "<leader>f", group = "Find" },
   	  { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Telescope find files" },
   	  { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Telescope live grep" },
   	  { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Telescope buffers" },
   	  { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Telescope help tags" },
+  })
 
-  	  { "<leader>b", group = "Buffer" },
-  	  { "<leader>bb", "<cmd>Telescope buffers<cr>", desc = "Select buffer" },
-  	  { "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
-  	  { "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
-  	  { "<leader>bd", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+#+end_src
 
+**** nvim-tree
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  wk.add({
+  	  { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree toggle" },
+  	  { "<leader>ef", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTree find file" },
+  })
+#+end_src
+
+**** tab
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  wk.add({
   	  { "<leader>t", group = "Tab" },
   	  { "<leader>tt", "<cmd>tabnew<cr>", desc = "New tab" },
   	  { "<leader>tn", "<cmd>tabnext<cr>", desc = "Next tab" },
@@ -352,7 +378,25 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   	  { "<leader>tc", "<cmd>tabclose<cr>", desc = "Close tab" },
   	  { "<leader>to", "<cmd>tabonly<cr>", desc = "Keep current tab" },
   })
+
+#+end_src
+
+**** buffer
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  wk.add({
+  	  { "<leader>b", group = "Buffer" },
+  	  { "<leader>bb", "<cmd>Telescope buffers<cr>", desc = "Select buffer" },
+  	  { "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
+  	  { "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
+  	  { "<leader>bd", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+  })
   -- stylua: ignore end
+#+end_src
+
+**** COMMENT example
+#+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  wk.add({
+  })
 #+end_src
 * ui
 ** init
@@ -514,7 +558,6 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   	  },
   						   })
 
-  vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {desc = "Toggle bufferline",})
 #+end_src
 ** dressing
 *** docs
