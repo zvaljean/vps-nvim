@@ -17,7 +17,7 @@
 
 * 配置检查
 
-执行 tangle 后，可以在 Neovim 中检查 =signcolumn=：
+执行 tangle 后，可以在 Neovim 中检查 =signcolumn= ：
 
 #+begin_src vim
 :set signcolumn?
@@ -59,6 +59,23 @@
 | Git | =lewis6991/gitsigns.nvim= | 行级 diff、hunk 跳转、暂存和 blame | 建议启用 |
 | 快捷键提示 | =folke/which-key.nvim= | 显示 leader 键和快捷键分组 | 建议启用 |
 | 语法解析 | =nvim-treesitter/nvim-treesitter= | 高亮、折叠、语法结构和 parser 管理 | 必须匹配 Neovim 版本 |
+
+** UI 美化
+
+| 分类 | 插件 | 用途 | 外部依赖/说明 |
+|---+---+---+---|
+| 主题 | =catppuccin/nvim= | 柔和、现代的配色主题 | 与其他主题二选一 |
+| 主题 | =folke/tokyonight.nvim= | Tokyo Night 配色主题 | 与其他主题二选一 |
+| 状态栏 | =nvim-lualine/lualine.nvim= | 模式、文件名、Git 和 LSP 状态 | 建议优先启用 |
+| Buffer 栏 | =akinsho/bufferline.nvim= | 顶部显示已打开的 buffer | 通常需要 devicons |
+| 命令行 UI | =folke/noice.nvim= | 美化消息、命令行和弹出菜单 | 需要匹配 Treesitter parser |
+| 输入框 | =stevearc/dressing.nvim= | 美化 =vim.ui.input= 和选择框 | 与 noice 功能有部分重叠 |
+| 启动页 | =goolord/alpha-nvim= | 启动欢迎页和快捷入口 | 与 Snacks dashboard 二选一 |
+| 综合 UI | =folke/snacks.nvim= | Dashboard、通知、输入框、滚动条等 | 按模块启用，避免和其他 UI 插件重复 |
+| 缩进线 | =lukas-reineke/indent-blankline.nvim= | 显示代码缩进层级 | 与 mini.indentscope 二选一 |
+| 当前作用域 | =echasnovski/mini.nvim= | 高亮当前代码缩进范围 | 只启用 =mini.indentscope= 模块 |
+| LSP 进度 | =j-hui/fidget.nvim= | 显示 LSP 请求进度 | 可选 |
+| 诊断列表 | =folke/trouble.nvim= | 统一查看诊断、引用和 quickfix | LSP 配置稳定后启用 |
 
 ** 第二批：代码智能
 
@@ -170,4 +187,26 @@
 
 - 为 nvim-treesitter parser 编译补充 devenv 依赖：Tree-sitter CLI、GCC、curl 和 GNU tar。
 - 未执行 devenv 更新或 parser 安装，待用户重新进入 devenv 后验证。
+
+** 2026-11-06
+
+- 将主题、状态栏、Buffer 栏、命令行、启动页、缩进和综合 UI 插件加入常用插件清单。
+- 记录 UI 插件之间的功能重叠和选择原则。
+- 按推荐组合添加 Tokyo Night、Lualine、Bufferline、Dressing 和 mini.indentscope 的 Org subtree 配置。
+- Bufferline 增加 nvim-tree 偏移区域，Dressing 和 mini.indentscope 使用默认基础配置。
+
+** 2026-11-06
+
+- 按 Tokyo Night 的 subtree 结构补充 Catppuccin 文档、切换入口和配置。
+- 使用 Catppuccin Mocha、非透明背景，并启用当前插件集成。
+- 将 Catppuccin 设为当前激活主题，保留 Tokyo Night subtree 作为备用主题。
+- Bufferline 改为使用默认主题高亮自动适配，避免绑定到 Catppuccin 专用配置。
+- NvimTree 的 Bufferline offset 去掉 =File Explorer= 标题，使用 =Normal= 高亮并关闭分隔线，改善透明主题下的顶部背景。
+- Bufferline 改用无分隔符样式，默认单个文件时自动隐藏，并通过 =showtabline= 和 =<leader>uB= 手动切换显示。
+- Bufferline 将当前文件指示器设置为下划线样式。
+- 补充 Bufferline 文件名长度、路径前缀、图标、关闭按钮、重复文件名和修改状态图标配置。
+- Bufferline 使用 =name_formatter= 隐藏最后一个文件后缀，并保留修改状态标记。
+- Telescope 启用 Catppuccin 浮窗透明集成，并将 =winblend= 设为 =0=，使其跟随当前透明主题。
+- Lualine 切换为 Catppuccin 主题，避免状态栏继续使用 Tokyo Night 配色。
+- 按 Catppuccin 官方 Lualine 集成说明，将 Lualine 主题名改为 =catppuccin-nvim=。
 

@@ -65,13 +65,12 @@
 * packages
 ** init
 #+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
-
   require("pkgs.telescope")
   require("pkgs.nvim-tree")
   require("pkgs.which-key")
   require("pkgs.gitsigns")
   require("pkgs.nvim-treesitter")
-
+  require("pkgs.catppuccin")
 #+end_src
 ** telescope
 *** docs
@@ -109,6 +108,9 @@
   vim.pack.add(telescope_plugins)
 
   require("telescope").setup({
+  	  defaults = {
+  		 winblend = 0,
+  	  },
   	  extensions = {
   		 ["ui-select"] = {
   			require("telescope.themes").get_dropdown(),
@@ -295,6 +297,216 @@
 
 #+end_src
 * ui
+** 
+** init
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.lualine")
+  require("pkgs.dressing")
+  require("pkgs.mini-indentscope")
+#+end_src
+** theme
+*** catppuccin
+**** docs
+- https://github.com/catppuccin/nvim
+**** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.catppuccin")
+  require("pkgs.bufferline")
+#+end_src
+**** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/catppuccin.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("catppuccin/nvim"),
+      name = "catppuccin",
+    },
+  })
+
+  require("catppuccin").setup({
+    flavour = "mocha",
+    transparent_background = true,
+    float = {
+      transparent = true,
+      solid = false,
+    },
+    term_colors = true,
+    auto_integrations = true,
+    integrations = {
+      gitsigns = true,
+      nvimtree = true,
+      telescope = {
+        enabled = true,
+      },
+      mini = {
+        enabled = true,
+        indentscope_color = "",
+      },
+    },
+  })
+
+  vim.cmd.colorscheme("catppuccin-nvim")
+#+end_src
+*** tokyonight
+**** docs
+- https://github.com/folke/tokyonight.nvim
+**** COMMENT switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
+  require("pkgs.tokyonight")
+  require("pkgs.bufferline")
+#+end_src
+**** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/tokyonight.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("folke/tokyonight.nvim"),
+    },
+  })
+
+  require("tokyonight").setup({
+    style = "night",
+    -- transparent = false,
+    transparent = true,
+    terminal_colors = true,
+  })
+
+  vim.cmd.colorscheme("tokyonight-night")
+#+end_src
+** lualine
+*** docs
+- https://github.com/nvim-lualine/lualine.nvim
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/lualine.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+  	  {
+  		 src = gh("nvim-lualine/lualine.nvim"),
+  	  },
+  })
+
+  require("lualine").setup({
+  	  options = {
+  		 -- theme = "tokyonight",
+  		 -- theme = "catppuccin-nvim",
+  		 theme = "auto",
+  		 globalstatus = true,
+  		 component_separators = "│",
+  		 section_separators = "",
+  	  },
+  						})
+#+end_src
+** bufferline
+*** docs
+- https://github.com/akinsho/bufferline.nvim
+*** file display
+- =max_name_length= ：文件名最大显示长度。
+- =max_prefix_length= ：同名文件时显示的路径前缀最大长度。
+- =truncate_names= ：文件名过长时是否截断。
+- =show_buffer_icons= ：是否显示文件类型图标。
+- =show_buffer_close_icons= ：是否显示每个 Buffer 的关闭图标。
+- =show_close_icon= ：是否显示 Bufferline 总体关闭图标。
+- =show_tab_indicators= ：是否显示当前 Buffer 指示器。
+- =show_duplicate_prefix= ：同名文件是否显示路径前缀。
+- =modified_icon= ：文件修改状态图标。
+- =name_formatter= ：自定义 Buffer 名称；当前配置隐藏最后一个文件后缀，并保留修改状态标记。
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/bufferline.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+  	  {
+  		 src = gh("akinsho/bufferline.nvim"),
+  	  },
+  	  {
+  		 src = gh("nvim-tree/nvim-web-devicons"),
+  	  },
+  })
+
+  require("bufferline").setup({
+  	  options = {
+  		 mode = "buffers",
+  		 indicator = {
+  			style = "underline",
+  		 },
+  		 max_name_length = 20,
+  		 max_prefix_length = 20,
+  		 truncate_names = true,
+  		 show_buffer_icons = true,
+  		 show_buffer_close_icons = false,
+  		 show_close_icon = false,
+  		 show_tab_indicators = true,
+  		 show_duplicate_prefix = true,
+  		 modified_icon = "",
+  		 always_show_bufferline = false,
+  		 themable = true,
+  		 diagnostics = "nvim_lsp",
+  		 separator_style = "none",
+  		 show_buffer_close_icons = false,
+  		 offsets = {
+  			{
+  			   filetype = "NvimTree",
+  			   text = "",
+  			   highlight = "Normal",
+  			   text_align = "left",
+  			   separator = false,
+  			},
+  		 },
+  		 name_formatter = function(buf)
+  			local name = vim.fn.fnamemodify(buf.name, ":t:r")
+
+  			if vim.bo[buf.bufnr].modified then
+  			   return name .. " ●"
+  			end
+
+  			return name
+  		 end,
+  	  },
+  						   })
+
+  vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {
+  				  desc = "Toggle bufferline",
+  })
+#+end_src
+** dressing
+*** docs
+- https://github.com/stevearc/dressing.nvim
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/dressing.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("stevearc/dressing.nvim"),
+    },
+  })
+
+  require("dressing").setup({})
+#+end_src
+** mini-indentscope
+*** docs
+- https://github.com/nvim-mini/mini.nvim
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/mini-indentscope.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("nvim-mini/mini.nvim"),
+    },
+  })
+
+  require("mini.indentscope").setup({
+    symbol = "│",
+    options = {
+      try_as_border = true,
+    },
+  })
+#+end_src
+
 * function
 * local variable
 # Local Variables:

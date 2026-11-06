@@ -8,7 +8,8 @@ vim.pack.add({
 
 require("tokyonight").setup({
   style = "night",
-  transparent = false,
+  -- transparent = false,
+  transparent = true,
   terminal_colors = true,
 })
 

@@ -22,6 +22,9 @@ local telescope_plugins = {
 vim.pack.add(telescope_plugins)
 
 require("telescope").setup({
+	  defaults = {
+		 winblend = 0,
+	  },
 	  extensions = {
 		 ["ui-select"] = {
 			require("telescope.themes").get_dropdown(),
