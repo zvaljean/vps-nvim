@@ -1,12 +1,8 @@
 local gh = require("libs").gh
 
 vim.pack.add({
-	  {
-		 src = gh("akinsho/bufferline.nvim"),
-	  },
-	  {
-		 src = gh("nvim-tree/nvim-web-devicons"),
-	  },
+	  { src = gh("akinsho/bufferline.nvim") },
+	  { src = gh("nvim-tree/nvim-web-devicons") },
 })
 
 require("bufferline").setup({
@@ -40,16 +36,12 @@ require("bufferline").setup({
 		 },
 		 name_formatter = function(buf)
 			local name = vim.fn.fnamemodify(buf.name, ":t:r")
-
 			if vim.bo[buf.bufnr].modified then
 			   return name .. " ●"
 			end
-
 			return name
 		 end,
 	  },
 						   })
 
-vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {
-				  desc = "Toggle bufferline",
-})
+vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {desc = "Toggle bufferline",})

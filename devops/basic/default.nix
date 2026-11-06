@@ -24,6 +24,18 @@
     nvim --headless "+qa";
   '';
 
+  scripts.nvim-install.exec = ''
+    nvim --headless '+lua require("nvim-treesitter").install({"lua",
+    "markdown",
+    "json",
+    "jsonc",
+    "markdown_inline",
+    "nix",
+    "vim",
+    "vimdoc",
+    "query"}):wait(300000)'  '+qa'
+  '';
+
   treefmt = {
     enable = true;
     # config.settings.excludes = [

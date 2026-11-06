@@ -1,9 +1,7 @@
 local gh = require("libs").gh
 
 vim.pack.add({
-  {
-    src = gh("nvim-treesitter/nvim-treesitter"),
-  },
+  {src = gh("nvim-treesitter/nvim-treesitter"),},
 })
 
 require("nvim-treesitter").setup({
@@ -12,6 +10,8 @@ require("nvim-treesitter").setup({
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = {
+    "json",
+    "jsonc",
     "lua",
     "markdown",
     "markdown_inline",

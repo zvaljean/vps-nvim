@@ -60,23 +60,6 @@
 | 快捷键提示 | =folke/which-key.nvim= | 显示 leader 键和快捷键分组 | 建议启用 |
 | 语法解析 | =nvim-treesitter/nvim-treesitter= | 高亮、折叠、语法结构和 parser 管理 | 必须匹配 Neovim 版本 |
 
-** UI 美化
-
-| 分类 | 插件 | 用途 | 外部依赖/说明 |
-|---+---+---+---|
-| 主题 | =catppuccin/nvim= | 柔和、现代的配色主题 | 与其他主题二选一 |
-| 主题 | =folke/tokyonight.nvim= | Tokyo Night 配色主题 | 与其他主题二选一 |
-| 状态栏 | =nvim-lualine/lualine.nvim= | 模式、文件名、Git 和 LSP 状态 | 建议优先启用 |
-| Buffer 栏 | =akinsho/bufferline.nvim= | 顶部显示已打开的 buffer | 通常需要 devicons |
-| 命令行 UI | =folke/noice.nvim= | 美化消息、命令行和弹出菜单 | 需要匹配 Treesitter parser |
-| 输入框 | =stevearc/dressing.nvim= | 美化 =vim.ui.input= 和选择框 | 与 noice 功能有部分重叠 |
-| 启动页 | =goolord/alpha-nvim= | 启动欢迎页和快捷入口 | 与 Snacks dashboard 二选一 |
-| 综合 UI | =folke/snacks.nvim= | Dashboard、通知、输入框、滚动条等 | 按模块启用，避免和其他 UI 插件重复 |
-| 缩进线 | =lukas-reineke/indent-blankline.nvim= | 显示代码缩进层级 | 与 mini.indentscope 二选一 |
-| 当前作用域 | =echasnovski/mini.nvim= | 高亮当前代码缩进范围 | 只启用 =mini.indentscope= 模块 |
-| LSP 进度 | =j-hui/fidget.nvim= | 显示 LSP 请求进度 | 可选 |
-| 诊断列表 | =folke/trouble.nvim= | 统一查看诊断、引用和 quickfix | LSP 配置稳定后启用 |
-
 ** 第二批：代码智能
 
 | 分类 | 插件 | 用途 | 外部依赖 |
@@ -111,13 +94,30 @@
 | =mfussenegger/nvim-dap= | Debug Adapter Protocol 调试 | 需要额外配置 debugger 和 adapter |
 | =nvim-neotest/neotest= | 测试发现、运行和结果展示 | 等 LSP/项目命令稳定后再启用 |
 
+** UI 美化
+
+| 分类 | 插件 | 用途 | 外部依赖/说明 |
+|---+---+---+---|
+| 主题 | =catppuccin/nvim= | 柔和、现代的配色主题 | 与其他主题二选一 |
+| 主题 | =folke/tokyonight.nvim= | Tokyo Night 配色主题 | 与其他主题二选一 |
+| 状态栏 | =nvim-lualine/lualine.nvim= | 模式、文件名、Git 和 LSP 状态 | 建议优先启用 |
+| Buffer 栏 | =akinsho/bufferline.nvim= | 顶部显示已打开的 buffer | 通常需要 devicons |
+| 命令行 UI | =folke/noice.nvim= | 美化消息、命令行和弹出菜单 | 需要匹配 Treesitter parser |
+| 输入框 | =stevearc/dressing.nvim= | 美化 =vim.ui.input= 和选择框 | 与 noice 功能有部分重叠 |
+| 启动页 | =goolord/alpha-nvim= | 启动欢迎页和快捷入口 | 与 Snacks dashboard 二选一 |
+| 综合 UI | =folke/snacks.nvim= | Dashboard、通知、输入框、滚动条等 | 按模块启用，避免和其他 UI 插件重复 |
+| 缩进线 | =lukas-reineke/indent-blankline.nvim= | 显示代码缩进层级 | 与 mini.indentscope 二选一 |
+| 当前作用域 | =echasnovski/mini.nvim= | 高亮当前代码缩进范围 | 只启用 =mini.indentscope= 模块 |
+| LSP 进度 | =j-hui/fidget.nvim= | 显示 LSP 请求进度 | 可选 |
+| 诊断列表 | =folke/trouble.nvim= | 统一查看诊断、引用和 quickfix | LSP 配置稳定后启用 |
+
 ** 远程文件
 
 远程文件不一定需要插件：Neovim 的 netrw 支持 =scp://= 路径，但当前体验更适合单文件编辑；远程项目建议使用 =sshfs= 挂载后交给 nvim-tree 或 Telescope 浏览。后续如需要远程开发，再单独评估远程插件。
 
 ** 推荐落地顺序
 
-1. 先确定插件管理器：=vim.pack= 或 =lazy.nvim=。
+1. 先确定插件管理器： =vim.pack= 或 =lazy.nvim= 。
 2. 安装 Telescope、Treesitter、gitsigns、which-key。
 3. 配置 LSP、Mason、blink.cmp 和 conform。
 4. 加入 nvim-tree、Markdown 和终端工具。
@@ -138,6 +138,50 @@
 - [ ] 增加 Git、调试和测试工具
 - [ ] 增加 Markdown/Org 编辑支持
 - [ ] 为每个阶段补充验证命令
+
+* todo
+** fold
+** DONE auto-save
+- auto-save
+** shortcut
+- buffer
+- tab
+
+** 代码折叠
+
+当前使用 Neovim 内置折叠机制和 Treesitter，不额外安装折叠插件。
+
+JSON 文件需要安装并启动对应的 Treesitter parser。首次更新配置后执行：
+
+#+begin_src sh
+nvim --headless \
+  '+lua require("nvim-treesitter").install({"json", "jsonc"}):wait(300000)' \
+  '+qa'
+#+end_src
+
+如果仍然显示没有折叠，可以检查当前文件是否有 Treesitter parser：
+
+#+begin_src vim
+:InspectTree
+:echo &filetype
+#+end_src
+
+#+begin_src lua
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldlevel = 99
+vim.opt.foldlevelstart = 99
+vim.opt.foldenable = true
+vim.opt.foldcolumn = "1"
+#+end_src
+
+常用操作：
+
+- =za= ：切换当前折叠。
+- =zo= ：打开当前折叠。
+- =zc= ：关闭当前折叠。
+- =zR= ：打开全部折叠。
+- =zM= ：关闭全部折叠。
 
 * 变更记录
 
@@ -207,6 +251,23 @@
 - 补充 Bufferline 文件名长度、路径前缀、图标、关闭按钮、重复文件名和修改状态图标配置。
 - Bufferline 使用 =name_formatter= 隐藏最后一个文件后缀，并保留修改状态标记。
 - Telescope 启用 Catppuccin 浮窗透明集成，并将 =winblend= 设为 =0=，使其跟随当前透明主题。
+- 在 nvim-treesitter 文档中补充新增语言时的 parser 安装、FileType 注册、名称差异和验证步骤。
+
 - Lualine 切换为 Catppuccin 主题，避免状态栏继续使用 Tokyo Night 配色。
 - 按 Catppuccin 官方 Lualine 集成说明，将 Lualine 主题名改为 =catppuccin-nvim=。
+
+** 2026-11-06
+
+- 添加 =okuuva/auto-save.nvim=，自动保存普通文件并跳过特殊 buffer。
+- 自动保存使用 =BufLeave=、=FocusLost=、=QuitPre=、=VimSuspend= 和延迟保存事件。
+- 添加 =<leader>ua= / =ASToggle= 临时切换自动保存。
+
+** 2026-11-06
+
+- 使用 Which-key 增加 =<leader>b= Buffer 分组，提供选择、切换和删除 Buffer 操作。
+- 使用 Which-key 增加 =<leader>t= Tab 分组，提供新建、切换、关闭和保留当前 Tab 操作。
+- Buffer 和 Tab 操作直接使用 Which-key mapping 的 rhs 定义，避免在 shortcut subtree 中重复绑定。
+- Which-key mapping 在 Org Babel 源码中采用单行紧凑格式；Babel tangle 会原样复制代码，后续 StyLua 是否展开取决于格式化规则。
+- Which-key 的 =wk.add= 中所有 mapping 和 group 均统一为每行一个配置。
+- 将 Telescope 和 NvimTree 的全局入口迁移到 Which-key 的 rhs，移除插件 subtree 中的重复快捷键定义。
 

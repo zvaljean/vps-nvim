@@ -29,6 +29,25 @@
   -- timeoutlen 控制 Neovim 等待后续按键的时间
     vim.opt.timeoutlen = 250
 #+end_src
+** folding
+- https://github.com/neovim/neovim/blob/master/runtime/doc/fold.txt
+使用 Treesitter 为支持的语言生成代码折叠层级，不额外安装折叠插件。
+
+- =foldmethod= 使用表达式计算折叠层级。
+- =foldexpr= 调用 Neovim 的 Treesitter 折叠表达式。
+- =foldlevel= 和 =foldlevelstart= 设为 =99=，启动时默认展开代码。
+- =foldenable= 启用折叠功能，=foldcolumn= 显示左侧折叠栏。
+- 使用 =za= 切换、=zo= 打开、=zc= 关闭当前折叠，使用 =zR= 和 =zM= 操作全部折叠。
+#+begin_src lua :tangle (concat lua-dir "options/init.lua") 
+  -- 使用 Treesitter 计算代码折叠层级
+  vim.opt.foldmethod = "expr"
+  vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+  -- 启动时展开全部折叠，但仍保留手动折叠能力
+  vim.opt.foldlevel = 99
+  vim.opt.foldlevelstart = 99
+  vim.opt.foldenable = true
+  vim.opt.foldcolumn = "1"
+  #+end_src
 * key mapping
 ** leader key
 #+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
@@ -36,19 +55,21 @@
   vim.g.maplocalleader = " "
 #+end_src
 ** shortcut
+*** basic
 #+begin_src lua :tangle (concat lua-dir "keymap/init.lua") 
   vim.keymap.set("n", "<leader>w", "<cmd>write<cr>", { desc = "Save file" })
   vim.keymap.set("n", "<leader>q", "<cmd>quit<cr>", { desc = "Quit window" })
+
   vim.keymap.set("n", "<leader>r", function()
   				  local config = vim.env.MYVIMRC
   				  if not config or config == "" then
   					 config = vim.fn.stdpath("config") .. "/init.lua"
   				  end
-
   				  vim.cmd("source " .. vim.fn.fnameescape(config))
   				  vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
   end, { desc = "Reload Neovim configuration" })
 #+end_src
+
 * libs
 ** init
 #+begin_src lua :tangle (concat lua-dir "libs/init.lua") 
@@ -121,20 +142,6 @@
   pcall(require("telescope").load_extension, "ui-select")
   -- pcall(require("telescope").load_extension, "fzf")
 
-  local builtin = require("telescope.builtin")
-
-  vim.keymap.set("n", "<leader>ff", builtin.find_files, {
-  				  desc = "Telescope find files",
-  })
-  vim.keymap.set("n", "<leader>fg", builtin.live_grep, {
-  				  desc = "Telescope live grep",
-  })
-  vim.keymap.set("n", "<leader>fb", builtin.buffers, {
-  				  desc = "Telescope buffers",
-  })
-  vim.keymap.set("n", "<leader>fh", builtin.help_tags, {
-  				  desc = "Telescope help tags",
-  })
 #+end_src
 ** gitsigns
 *** docs
@@ -144,12 +151,71 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("lewis6991/gitsigns.nvim"),
-    },
+    {src = gh("lewis6991/gitsigns.nvim"),},
   })
 
   require("gitsigns").setup({})
+#+end_src
+** auto-save
+*** docs
+- https://github.com/okuuva/auto-save.nvim
+- 自动保存普通文件，跳过特殊 buffer。
+- =<leader>ua= ：临时切换自动保存。
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/auto-save.lua") 
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    {
+      src = gh("okuuva/auto-save.nvim"),
+      version = "v1.0.0",
+    },
+  })
+
+  local excluded_filetypes = {
+    "gitcommit",
+    "help",
+    "NvimTree",
+    "prompt",
+    "qf",
+    "TelescopePrompt",
+    "terminal",
+    "toggleterm",
+  }
+
+  require("auto-save").setup({
+    enabled = true,
+    trigger_events = {
+      immediate_save = { "BufLeave", "FocusLost", "QuitPre", "VimSuspend" },
+      defer_save = { "InsertLeave", "TextChanged" },
+      cancel_deferred_save = { "InsertEnter" },
+    },
+    condition = function(buf)
+      if vim.fn.getbufvar(buf, "&buftype") ~= "" then
+        return false
+      end
+
+      if vim.fn.getbufvar(buf, "&modifiable") ~= 1 then
+        return false
+      end
+
+      if vim.fn.getbufvar(buf, "&readonly") == 1 then
+        return false
+      end
+
+      if vim.api.nvim_buf_get_name(buf) == "" then
+        return false
+      end
+
+      return not vim.tbl_contains(excluded_filetypes, vim.bo[buf].filetype)
+    end,
+    write_all_buffers = false,
+    debounce_delay = 1000,
+  })
+
+  vim.keymap.set("n", "<leader>ua", "<cmd>ASToggle<CR>", {
+    desc = "Toggle auto-save",
+  })
 #+end_src
 ** nvim-treesitter
 *** docs
@@ -158,11 +224,30 @@
   也需要提前安装，本项目配置再devenv环境中。.
   之后才可以编译Treesitter
 - Treesitter parser 需要单独安装
+
+新增语言时需要完成以下步骤：
+
+1. 安装对应的 Treesitter parser。每个 parser 在当前 =NVIM_APPNAME= 数据目录下只需安装一次：
+
+   #+begin_src sh
+   nvim --headless \
+     '+lua require("nvim-treesitter").install({"json"}):wait(300000)' \
+     '+qa'
+   #+end_src
+
+2. 将对应的 filetype 添加到下面配置的 =FileType pattern= 列表中，使打开文件时启动 Treesitter。
+
+3. 重新打开文件，并使用 =:set filetype?= 和 =:InspectTree= 检查 filetype 与语法树。
+
+parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser 名称，=typescriptreact= 是 React 文件的 filetype；添加语言时应分别确认两者。
+
+当前配置采用手动安装 parser 的方式，避免 Neovim 启动时联网或编译。更换 =NVIM_APPNAME= 数据目录、清空 parser 目录或需要更新 parser 时，才需要重新执行安装命令。
+
   #+begin_src shell
-    # - :TSInstall lua markdown markdown_inline nix vim vimdoc query
-    NVIM_APPNAME=nvim-lab nvim --headless \
-        				  '+lua require("nvim-treesitter").install({"lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
-        				  '+qa'
+    # - :TSInstall json jsonc lua markdown markdown_inline nix vim vimdoc query
+    nvim --headless \
+         '+lua require("nvim-treesitter").install({"json", "jsonc", "lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
+         '+qa'
     #+end_src
 *** config
 
@@ -170,9 +255,7 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("nvim-treesitter/nvim-treesitter"),
-    },
+    {src = gh("nvim-treesitter/nvim-treesitter"),},
   })
 
   require("nvim-treesitter").setup({
@@ -181,6 +264,8 @@
 
   vim.api.nvim_create_autocmd("FileType", {
     pattern = {
+      "json",
+      "jsonc",
       "lua",
       "markdown",
       "markdown_inline",
@@ -194,6 +279,9 @@
     end,
   })
 #+end_src
+
+#+RESULTS:
+
 ** nvim-tree
 *** docs
 - https://github.com/nvim-tree/nvim-tree.lua
@@ -209,12 +297,8 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("nvim-tree/nvim-tree.lua"),
-    },
-    {
-      src = gh("nvim-tree/nvim-web-devicons"),
-    },
+    {src = gh("nvim-tree/nvim-tree.lua"),},
+    {src = gh("nvim-tree/nvim-web-devicons"),},
   })
 
   require("nvim-tree").setup({
@@ -226,15 +310,6 @@
     },
   })
 
-  local api = require("nvim-tree.api")
-
-  vim.keymap.set("n", "<leader>e", api.tree.toggle, {
-    desc = "NvimTree toggle",
-  })
-  vim.keymap.set("n", "<leader>ef", api.tree.find_file, {
-    desc = "NvimTree find file",
-  })
-
 #+end_src
 ** which-key
 *** docs
@@ -244,60 +319,42 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("folke/which-key.nvim"),
-    },
+  	  { src = gh("folke/which-key.nvim") },
   })
 
   local wk = require("which-key")
 
   wk.setup({})
+  -- stylua: ignore start
   wk.add({
-    {
-      "<leader>w",
-      desc = "Save file",
-    },
-    {
-      "<leader>q",
-      desc = "Quit window",
-    },
-    {
-      "<leader>r",
-      desc = "Reload Neovim configuration",
-    },
-    {
-      "<leader>e",
-      desc = "NvimTree toggle",
-    },
-    {
-      "<leader>ef",
-      desc = "NvimTree find file",
-    },
-    {
-      "<leader>f",
-      group = "Find",
-    },
-    {
-      "<leader>ff",
-      desc = "Telescope find files",
-    },
-    {
-      "<leader>fg",
-      desc = "Telescope live grep",
-    },
-    {
-      "<leader>fb",
-      desc = "Telescope buffers",
-    },
-    {
-      "<leader>fh",
-      desc = "Telescope help tags",
-    },
-  })
+  	  { "<leader>w", desc = "Save file" },
+  	  { "<leader>q", desc = "Quit window" },
+  	  { "<leader>r", desc = "Reload Neovim configuration" },
+  	  { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "NvimTree toggle" },
+  	  { "<leader>ef", "<cmd>NvimTreeFindFile<cr>", desc = "NvimTree find file" },
 
+  	  { "<leader>f", group = "Find" },
+  	  { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Telescope find files" },
+  	  { "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Telescope live grep" },
+  	  { "<leader>fb", "<cmd>Telescope buffers<cr>", desc = "Telescope buffers" },
+  	  { "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Telescope help tags" },
+
+  	  { "<leader>b", group = "Buffer" },
+  	  { "<leader>bb", "<cmd>Telescope buffers<cr>", desc = "Select buffer" },
+  	  { "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
+  	  { "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
+  	  { "<leader>bd", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+
+  	  { "<leader>t", group = "Tab" },
+  	  { "<leader>tt", "<cmd>tabnew<cr>", desc = "New tab" },
+  	  { "<leader>tn", "<cmd>tabnext<cr>", desc = "Next tab" },
+  	  { "<leader>tp", "<cmd>tabprevious<cr>", desc = "Previous tab" },
+  	  { "<leader>tc", "<cmd>tabclose<cr>", desc = "Close tab" },
+  	  { "<leader>to", "<cmd>tabonly<cr>", desc = "Keep current tab" },
+  })
+  -- stylua: ignore end
 #+end_src
 * ui
-** 
 ** init
 #+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
   require("pkgs.lualine")
@@ -361,9 +418,7 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("folke/tokyonight.nvim"),
-    },
+    {src = gh("folke/tokyonight.nvim"),},
   })
 
   require("tokyonight").setup({
@@ -383,9 +438,7 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-  	  {
-  		 src = gh("nvim-lualine/lualine.nvim"),
-  	  },
+  	  { src = gh("nvim-lualine/lualine.nvim") },
   })
 
   require("lualine").setup({
@@ -418,12 +471,8 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-  	  {
-  		 src = gh("akinsho/bufferline.nvim"),
-  	  },
-  	  {
-  		 src = gh("nvim-tree/nvim-web-devicons"),
-  	  },
+  	  { src = gh("akinsho/bufferline.nvim") },
+  	  { src = gh("nvim-tree/nvim-web-devicons") },
   })
 
   require("bufferline").setup({
@@ -457,19 +506,15 @@
   		 },
   		 name_formatter = function(buf)
   			local name = vim.fn.fnamemodify(buf.name, ":t:r")
-
   			if vim.bo[buf.bufnr].modified then
   			   return name .. " ●"
   			end
-
   			return name
   		 end,
   	  },
   						   })
 
-  vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {
-  				  desc = "Toggle bufferline",
-  })
+  vim.keymap.set("n", "<leader>uB", "<cmd>BufferLineToggleShow<CR>", {desc = "Toggle bufferline",})
 #+end_src
 ** dressing
 *** docs
@@ -479,9 +524,7 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("stevearc/dressing.nvim"),
-    },
+    {src = gh("stevearc/dressing.nvim"),},
   })
 
   require("dressing").setup({})
@@ -494,17 +537,13 @@
   local gh = require("libs").gh
 
   vim.pack.add({
-    {
-      src = gh("nvim-mini/mini.nvim"),
-    },
+  	  { src = gh("nvim-mini/mini.nvim") },
   })
 
   require("mini.indentscope").setup({
-    symbol = "│",
-    options = {
-      try_as_border = true,
-    },
-  })
+  	  symbol = "│",
+  	  options = { try_as_border = true },
+  								 })
 #+end_src
 
 * function

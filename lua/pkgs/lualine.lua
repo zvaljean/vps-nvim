@@ -1,9 +1,7 @@
 local gh = require("libs").gh
 
 vim.pack.add({
-	  {
-		 src = gh("nvim-lualine/lualine.nvim"),
-	  },
+	  { src = gh("nvim-lualine/lualine.nvim") },
 })
 
 require("lualine").setup({
