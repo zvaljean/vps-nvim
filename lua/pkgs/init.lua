@@ -4,6 +4,8 @@ require("pkgs.gitsigns")
 
 require("pkgs.auto-save")
 
+require("pkgs.conform")
+
 require("pkgs.nvim-treesitter")
 
 require("pkgs.nvim-tree")

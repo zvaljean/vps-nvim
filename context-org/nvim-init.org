@@ -1,6 +1,9 @@
 #+title: Nvim Config 
 #+PROPERTY: header-args:lua :tangle yes :mkdirp yes :padline yes
 * entrypoint
+:PROPERTIES:
+:CATEGORY: bootstrap
+:END:
 #+begin_src lua :tangle (concat root-dir "init.lua") 
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
@@ -8,6 +11,9 @@
   require("pkgs")
 #+end_src
 * options
+:PROPERTIES:
+:CATEGORY: options
+:END:
 ** check
 在nvim中检查某个变量值
 #+begin_src
@@ -50,6 +56,9 @@
   vim.opt.foldcolumn = "1"
   #+end_src
 * libs
+:PROPERTIES:
+:CATEGORY: libs
+:END:
 ** init
 #+begin_src lua :tangle (concat lua-dir "libs/init.lua") 
   local M = {}
@@ -63,6 +72,9 @@
   end
 #+end_src
 * packages
+:PROPERTIES:
+:CATEGORY: packages
+:END:
 ** COMMENT init
 #+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
 #+end_src
@@ -195,6 +207,42 @@
   })
 
 #+end_src
+** conform
+*** docs
+- https://github.com/stevearc/conform.nvim
+- 统一调用外部 formatter，格式化快捷键使用 Neovim 默认的 =gq= ，保存时自动格式化。
+*** switch
+#+begin_src lua :tangle (concat lua-dir "pkgs/init.lua")
+  require("pkgs.conform")
+#+end_src
+*** config
+#+begin_src lua :tangle (concat lua-dir "pkgs/conform.lua")
+  local gh = require("libs").gh
+
+  vim.pack.add({
+    { src = gh("stevearc/conform.nvim") },
+  })
+
+  require("conform").setup({
+    formatters_by_ft = {
+      sh = { "shfmt" },
+      bash = { "shfmt" },
+      zsh = { "shfmt" },
+      nix = { "alejandra" },
+      javascript = { "prettier" },
+      javascriptreact = { "prettier" },
+      typescript = { "prettier" },
+      typescriptreact = { "prettier" },
+      lua = { "stylua" },
+      json = { "prettier" },
+      jsonc = { "prettier" },
+    },
+    format_on_save = {
+      timeout_ms = 500,
+      lsp_format = "fallback",
+    },
+  })
+#+end_src
 ** nvim-treesitter
 *** docs
 - https://github.com/nvim-treesitter/nvim-treesitter
@@ -222,9 +270,9 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
 当前配置采用手动安装 parser 的方式，避免 Neovim 启动时联网或编译。更换 =NVIM_APPNAME= 数据目录、清空 parser 目录或需要更新 parser 时，才需要重新执行安装命令。
 
   #+begin_src shell
-    # - :TSInstall json jsonc lua markdown markdown_inline nix vim vimdoc query
+    # - :TSInstall bash json jsonc lua markdown markdown_inline nix vim vimdoc query
     nvim --headless \
-         '+lua require("nvim-treesitter").install({"json", "jsonc", "lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
+         '+lua require("nvim-treesitter").install({"bash", "json", "jsonc", "lua", "markdown", "markdown_inline", "nix", "vim", "vimdoc", "query"}):wait(300000)' \
          '+qa'
     #+end_src
 *** switch
@@ -248,6 +296,9 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
     pattern = {
       "json",
       "jsonc",
+      "sh",
+      "bash",
+      "zsh",
       "lua",
       "markdown",
       "markdown_inline",
@@ -298,7 +349,7 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   })
 
 #+end_src
-** which-key
+** which-key  :keymap:
 *** docs
 - https://github.com/folke/which-key.nvim
 *** switch
@@ -334,6 +385,10 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
      vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
   end
 
+  local triggle_tabline= function()
+     vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
+  end
+
   wk.add({
   	  { "<leader>w", "<cmd>write<cr>", desc = "Save file" },
   	  { "<leader>W", "<cmd>wall<cr>", desc = "Save all file" },
@@ -341,9 +396,14 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   	  { "<leader>Q", "<cmd>quitall<cr>", desc = "Quit all window" },
   	  { "<leader>r",  reload, desc = "Reload Neovim configuration" },
   	  { "<leader>ua", "<cmd>ASToggle<cr>", desc = "Toggle auto-save" },
-  	  { "<leader>uB", function()
-  		   vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
-  	  end, desc = "Toggle bufferline" },
+  	  { "jk", "<Esc>", mode = "i", desc = "Exit insert mode" },
+  	  { "<leader>uB", triggle_tabline, desc = "Toggle bufferline" },
+  	  { "<C-x><C-;>", "gcc", mode = "n", remap = true, desc = "Toggle comment" },
+  	  { "<C-x><C-;>", "gc", mode = "v", remap = true, desc = "Toggle comment" },
+  	  { "<C-c><C-f>", function()
+  	    require("conform").format({ lsp_format = "fallback" })
+  	  end, mode = { "n", "v" }, desc = "Format buffer or selection" },
+  	  -- like emacs
   })
 #+end_src
 
@@ -383,12 +443,24 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
 
 **** buffer
 #+begin_src lua :tangle (concat lua-dir "pkgs/which-key.lua") 
+  local close_buffer = function()
+     local is_empty_unnamed = vim.api.nvim_buf_get_name(0) == ""
+  	  and vim.bo.buftype == ""
+  	  and vim.api.nvim_buf_line_count(0) == 1
+  	  and vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] == ""
+     if is_empty_unnamed then
+  	  vim.cmd("q!")
+     else
+  	  vim.cmd("q")
+     end
+  end
+
   wk.add({
   	  { "<leader>b", group = "Buffer" },
   	  { "<leader>bb", "<cmd>Telescope buffers<cr>", desc = "Select buffer" },
   	  { "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
   	  { "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
-  	  { "<leader>bd", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+  	  { "<leader>bd", close_buffer, desc = "Close buffer" },
   })
   -- stylua: ignore end
 #+end_src
@@ -399,6 +471,9 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   })
 #+end_src
 * ui
+:PROPERTIES:
+:CATEGORY: ui
+:END:
 ** init
 #+begin_src lua :tangle (concat lua-dir "pkgs/init.lua") 
   require("pkgs.lualine")
@@ -534,6 +609,8 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   		 show_tab_indicators = true,
   		 show_duplicate_prefix = true,
   		 modified_icon = "",
+  		 --  在打开多个 Buffer 或切换 Tab 时会自动把 vim.o.showtabline = 2
+  		 auto_toggle_bufferline = false,
   		 always_show_bufferline = false,
   		 themable = true,
   		 diagnostics = "nvim_lsp",
@@ -558,6 +635,8 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
   	  },
   						   })
 
+  -- 默认隐藏 Bufferline，由 Which-key 的 <leader>uB 手动切换。
+  vim.o.showtabline = 0
 #+end_src
 ** dressing
 *** docs
@@ -590,7 +669,13 @@ parser 名称和 filetype 名称不一定相同。例如 =typescript= 是 parser
 #+end_src
 
 * function
+:PROPERTIES:
+:CATEGORY: function
+:END:
 * local variable
+:PROPERTIES:
+:CATEGORY: variable
+:END:
 # Local Variables:
 # root-dir: "../"
 # lua-dir: "../lua/"

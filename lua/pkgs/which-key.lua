@@ -17,6 +17,10 @@ local reload =  function()
    vim.notify("Neovim configuration reloaded", vim.log.levels.INFO)
 end
 
+local triggle_tabline= function()
+   vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
+end
+
 wk.add({
 	  { "<leader>w", "<cmd>write<cr>", desc = "Save file" },
 	  { "<leader>W", "<cmd>wall<cr>", desc = "Save all file" },
@@ -24,9 +28,14 @@ wk.add({
 	  { "<leader>Q", "<cmd>quitall<cr>", desc = "Quit all window" },
 	  { "<leader>r",  reload, desc = "Reload Neovim configuration" },
 	  { "<leader>ua", "<cmd>ASToggle<cr>", desc = "Toggle auto-save" },
-	  { "<leader>uB", function()
-		   vim.o.showtabline = vim.o.showtabline == 0 and 2 or 0
-	  end, desc = "Toggle bufferline" },
+	  { "jk", "<Esc>", mode = "i", desc = "Exit insert mode" },
+	  { "<leader>uB", triggle_tabline, desc = "Toggle bufferline" },
+	  { "<C-x><C-;>", "gcc", mode = "n", remap = true, desc = "Toggle comment" },
+	  { "<C-x><C-;>", "gc", mode = "v", remap = true, desc = "Toggle comment" },
+	  { "<C-c><C-f>", function()
+	    require("conform").format({ lsp_format = "fallback" })
+	  end, mode = { "n", "v" }, desc = "Format buffer or selection" },
+	  -- like emacs
 })
 
 wk.add({
@@ -51,11 +60,23 @@ wk.add({
 	  { "<leader>to", "<cmd>tabonly<cr>", desc = "Keep current tab" },
 })
 
+local close_buffer = function()
+   local is_empty_unnamed = vim.api.nvim_buf_get_name(0) == ""
+	  and vim.bo.buftype == ""
+	  and vim.api.nvim_buf_line_count(0) == 1
+	  and vim.api.nvim_buf_get_lines(0, 0, 1, false)[1] == ""
+   if is_empty_unnamed then
+	  vim.cmd("q!")
+   else
+	  vim.cmd("q")
+   end
+end
+
 wk.add({
 	  { "<leader>b", group = "Buffer" },
 	  { "<leader>bb", "<cmd>Telescope buffers<cr>", desc = "Select buffer" },
 	  { "<leader>bn", "<cmd>bnext<cr>", desc = "Next buffer" },
 	  { "<leader>bp", "<cmd>bprevious<cr>", desc = "Previous buffer" },
-	  { "<leader>bd", "<cmd>bdelete<cr>", desc = "Delete buffer" },
+	  { "<leader>bd", close_buffer, desc = "Close buffer" },
 })
 -- stylua: ignore end

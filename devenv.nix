@@ -5,12 +5,19 @@
   inputs,
   ...
 }: {
-  packages = [
-    pkgs.tree-sitter
-    pkgs.gcc
-    pkgs.curl
-    pkgs.gnutar
-  ];
+  packages = builtins.attrValues {
+    inherit
+      (pkgs)
+      tree-sitter
+      gcc
+      # curl
+      gnutar
+      shfmt
+      alejandra
+      prettier
+      stylua
+      ;
+  };
 
   env.NVIM_APPNAME = "nvim-lab";
 

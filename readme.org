@@ -15,6 +15,8 @@
 
 项目配置目录为 =/home/valjean/.config/nvim-lab=。
 
+配置源文件的顶层 subtree 使用 Org property drawer 设置 =CATEGORY=；子 subtree 可以继承所属模块分类，例如插件配置继承 =packages=，界面配置继承 =ui=。
+
 * 配置检查
 
 执行 tangle 后，可以在 Neovim 中检查 =signcolumn= ：
@@ -34,6 +36,7 @@
 
 #+begin_src sh
   make treesitter-install  # 安装或更新常用 Treesitter parser
+  make formatters-check    # 检查 devenv 是否提供四个 formatter
   make nvim-check          # 无界面启动检查
   make check               # nvim-check 的别名
 #+end_src
@@ -281,4 +284,10 @@ vim.opt.foldcolumn = "1"
 - 修复 auto-save 未加入插件初始化的问题。
 - 将保存、退出、重载配置、自动保存和 Bufferline 切换统一迁移到 Which-key 的 rhs。
 - 用 =vim.o.showtabline= 实现 Bufferline 显示切换，移除不存在的 =BufferLineToggleShow= 命令。
+- 在 Which-key basic 分组中增加插入模式 =jk= 映射，用于返回 Normal 模式。
+- 关闭 Bufferline 的 =auto_toggle_bufferline=，并在初始化后将 =showtabline= 默认设为 =0=，避免插件自动恢复显示。
+- 为 Shell 文件加入 Treesitter =bash= parser，并覆盖 =sh=、=bash= 和 =zsh= filetype。
+- 添加 =stevearc/conform.nvim=，为 Shell、Nix、JavaScript/TypeScript、Lua、JSON/JSONC 配置对应 formatter，并启用保存时格式化。
+- formatter 工具由 =devenv.nix= 提供；Makefile 使用 =formatters-check= 检查 =shfmt=、=alejandra=、=prettier= 和 =stylua= 是否可用，不再通过 Nix 命令安装。
+- 在 Which-key basic 分组中加入 =<C-c><C-f>= 格式化，以及 Normal/Visual 模式的 =<leader>c= 注释切换，并保留 =remap= 行为。
 

@@ -12,6 +12,9 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = {
     "json",
     "jsonc",
+    "sh",
+    "bash",
+    "zsh",
     "lua",
     "markdown",
     "markdown_inline",

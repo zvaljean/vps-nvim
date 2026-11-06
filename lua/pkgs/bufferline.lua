@@ -20,6 +20,8 @@ require("bufferline").setup({
 		 show_tab_indicators = true,
 		 show_duplicate_prefix = true,
 		 modified_icon = "",
+		 --  在打开多个 Buffer 或切换 Tab 时会自动把 vim.o.showtabline = 2
+		 auto_toggle_bufferline = false,
 		 always_show_bufferline = false,
 		 themable = true,
 		 diagnostics = "nvim_lsp",
@@ -43,3 +45,6 @@ require("bufferline").setup({
 		 end,
 	  },
 						   })
+
+-- 默认隐藏 Bufferline，由 Which-key 的 <leader>uB 手动切换。
+vim.o.showtabline = 0
