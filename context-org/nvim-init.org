@@ -28,6 +28,8 @@
   vim.opt.relativenumber = true
   vim.opt.mouse = "a"
   vim.opt.termguicolors = true
+  -- 使用系统剪切板作为 unnamedplus，支持 y/p 与桌面剪切板同步
+  vim.opt.clipboard = "unnamedplus"
   vim.opt.expandtab = true
   vim.opt.shiftwidth = 2
   vim.opt.tabstop = 2
